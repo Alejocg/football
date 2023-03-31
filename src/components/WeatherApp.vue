@@ -4,9 +4,6 @@
   >
     <h1 class="text-4xl font-bold mb-8">Is it cold now?</h1>
 
-
-
-    
     <div
       class="location-input mb-8 flex flex-col items-center sm:flex-row sm:justify-center sm:items-start"
     >
@@ -115,38 +112,65 @@ export default {
     },
     toggleTemperatureUnit() {
       this.isCelsius = !this.isCelsius;
+
+      if (this.weatherData) {
+        if (this.isCelsius) {
+          this.weatherData.main.temp =
+            ((this.weatherData.main.temp - 32) * 5) / 9;
+        } else {
+          this.weatherData.main.temp =
+            (this.weatherData.main.temp * 9) / 5 + 32;
+        }
+      }
+
       this.getWeather();
     },
     getWeatherIconUrl(icon) {
-      return `https://openweathermap.org/img/w/${icon}.png`;
-    },
-    getLocation() {
-  if ("geolocation" in navigator) {
-    navigator.geolocation.getCurrentPosition(async (position) => {
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-
       try {
-        const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=60015bca9662a2ab816cbdd318050800&units=${
-            this.isCelsius ? "metric" : "imperial"
-          }`
-        );
-        const data = await response.json();
-        this.weatherData = data;
+        return `https://openweathermap.org/img/w/${icon}.png`;
       } catch (error) {
-        this.error =
-          "An error occurred while fetching the weather data. Please try again later.";
+        console.error(error);
+        return null;
       }
-    });
-  } else {
-    alert("Geolocation is not available");
-  }
-},
+    },
+    
+    getLocation() {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          const latitude = position.coords.latitude;
+          const longitude = position.coords.longitude;
+
+          try {
+            const response = await fetch(
+              `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=60015bca9662a2ab816cbdd318050800&units=${
+                this.isCelsius ? "metric" : "imperial"
+              }`
+            );
+            const data = await response.json();
+            this.weatherData = data;
+          } catch (error) {
+            this.error =
+              "An error occurred while fetching the weather data. Please try again later.";
+          }
+        });
+      } else {
+        alert("Geolocation is not available");
+      }
+    },
   },
   computed: {
     isLocationEmpty() {
       return !this.location && !("geolocation" in navigator);
+    },
+    getWeatherMessage() {
+      if (this.weatherData) {
+        const weatherDescription = this.weatherData.weather[0].description;
+        return (
+          weatherDescription.charAt(0).toUpperCase() +
+          weatherDescription.slice(1)
+        );
+      }
+      return "";
     },
   },
 };
