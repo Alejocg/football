@@ -35,32 +35,39 @@
     </div>
     <div v-if="error">{{ error }}</div>
     <div
-      v-if="weatherData"
-      class="weather-info bg-blue-800 shadow-lg hover:shadow-xl rounded-lg p-6 w-80 transform hover:scale-105 transition duration-300 ease-in-out"
-    >
-      <h2 class="text-2xl font-bold mb-4">{{ weatherData.name }}</h2>
-      <div class="flex items-center mb-4">
-        <img
-          :src="getWeatherIconUrl(weatherData.weather[0].icon)"
-          class="w-16 h-16 mr-4"
-        />
-        <p class="text-lg">{{ weatherData.weather[0].description }}</p>
-      </div>
-      <div class="flex justify-between mb-4">
-        <div>
-          <p class="text-4xl font-bold">{{ getTemperature() }}</p>
-          <p class="text-lg">{{ getTemperatureUnit() }}</p>
-        </div>
-        <div>
-          <button
-            @click="toggleTemperatureUnit"
-            class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transform hover:scale-105 transition duration-300 ease-in-out"
-          >
-            {{ getTemperatureUnit(true) }}
-          </button>
-        </div>
-      </div>
+  v-if="weatherData"
+  class="weather-info bg-blue-800 shadow-lg hover:shadow-xl rounded-lg p-6 w-80 transform hover:scale-105 transition duration-300 ease-in-out"
+>
+  <h2 class="text-2xl font-bold mb-4">{{ weatherData.name }}</h2>
+  <div class="flex items-center mb-4">
+    <img
+      :src="getWeatherIconUrl(weatherData.weather[0].icon)"
+      class="w-16 h-16 mr-4"
+    />
+    <p class="text-lg">{{ weatherData.weather[0].description }}</p>
+  </div>
+  <div class="flex justify-between mb-4">
+    <div>
+      <p class="text-4xl font-bold">{{ getTemperature() }}</p>
+      
     </div>
+    <div>
+      <button
+        @click="toggleTemperatureUnit"
+        class="bg-white hover:bg-gray-100 text-gray-800 font-semibold py-2 px-4 rounded-full shadow-md hover:shadow-lg transform hover:scale-105 transition duration-300 ease-in-out"
+      >
+        {{ getTemperatureUnit(true) }}
+      </button>
+    </div>
+  </div>
+  <div class="flex justify-between mb-4">
+    <div>
+      <p class="text-lg font-bold"></p>
+      <p class="text-lg">{{ weatherData.time }}</p>
+    </div>
+  </div>
+</div>
+
   </div>
 </template>
 <script>
@@ -75,25 +82,44 @@ export default {
     };
   },
   methods: {
+   
     async getWeather() {
-      this.weatherData = null; // set weatherData to null before making API call
-      this.error = null; // reset error state before making API call
+  this.weatherData = null; // set weatherData to null before making API call
+  this.error = null; // reset error state before making API call
 
-      try {
-        const response = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${
-            this.location
-          }&appid=60015bca9662a2ab816cbdd318050800&units=${
-            this.isCelsius ? "metric" : "imperial"
-          }`
-        );
-        const data = await response.json();
-        this.weatherData = data;
-      } catch (error) {
-        this.error =
-          "An error occurred while fetching the weather data. Please try again later.";
-      }
-    },
+  try {
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?q=${
+        this.location
+      }&appid=60015bca9662a2ab816cbdd318050800&units=${
+        this.isCelsius ? "metric" : "imperial"
+      }`
+    );
+    const data = await response.json();
+    this.weatherData = data;
+
+    const lat = data.coord.lat;
+    const lon = data.coord.lon;
+    const timezoneResponse = await fetch(
+      `https://api.timezonedb.com/v2.1/get-time-zone?key=NFSIRR9QZCE2&format=json&by=position&lat=${lat}&lng=${lon}`
+    );
+    const timezoneData = await timezoneResponse.json();
+    const dateTime = new Date(timezoneData.formatted);
+    this.weatherData.time = dateTime.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  } catch (error) {
+    this.error =
+      "An error occurred while fetching the weather data. Please try again later.";
+  }
+},
+
+
+
+
+
     getTemperature() {
       if (this.isCelsius) {
         return `${Math.round(this.weatherData.main.temp)}°C`;
