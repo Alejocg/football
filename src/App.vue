@@ -5,7 +5,13 @@
     </header>
     <main class="flex-1 p-4">
       <div class="max-w-xl mx-auto">
-        <h2 class="text-2xl font-bold text-blue-700 mb-6 bg-blue-500 text-white py-2 px-4 shadow-md rounded-md">Next Matches for Barcelona</h2>
+        <h2 class="text-2xl font-bold text-blue-700 mb-6 bg-blue-500 text-white py-2 px-4 shadow-md rounded-md">Next Matches for {{ selectedTeam }}</h2>
+        <div class="mb-4">
+          <label for="team-select" class="font-bold text-red-500 text-lg mr-2">Select a team:</label>
+          <select id="team-select" v-model="selectedTeam" @change="changeTeam" class="border bg-yellow-600 border-gray-400 rounded-md px-2 py-1">
+            <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
+          </select>
+        </div>
         <div v-if="loading" class="text-2xl font-bold mb-4">Loading...</div>
         <div v-else class="text-lg">
           <div v-if="matches.length > 0" class="mb-4">
@@ -57,9 +63,6 @@
 
 
 
-
-
-
 <script>
 export default {
   data() {
@@ -68,6 +71,25 @@ export default {
       matches: [],
       apiKey: "2bb57441c3ef9dd462e504182561954a",
       teamId: 529, // Barcelona's team ID in the API
+      teams: [
+        {
+          name: "Barcelona",
+          id: 529,
+        },
+        {
+          name: "Real Madrid",
+          id: 541,
+        },
+        {
+          name: "Manchester City",
+          id: 50,
+        },
+        {
+          name: "Fribourg",
+          id: 290,
+        },
+      ],
+      selectedTeam: "Barcelona",
     };
   },
   methods: {
@@ -94,9 +116,18 @@ export default {
       };
       return new Date(date).toLocaleDateString("en-US", options);
     },
+    async changeTeam() {
+      const team = this.teams.find((t) => t.name === this.selectedTeam);
+      this.teamId = team.id;
+      this.loading = true;
+      await this.fetchNextMatches();
+    },
   },
   async mounted() {
     await this.fetchNextMatches();
+  },
+  watch: {
+    selectedTeam: "changeTeam",
   },
 };
 </script>
