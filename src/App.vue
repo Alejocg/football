@@ -86,7 +86,7 @@ export default {
         },
         {
           name: "Fribourg",
-          id: 290,
+          id: 160,
         },
       ],
       selectedTeam: "Barcelona",
